@@ -81,3 +81,41 @@ def test_spawn_launches_one_koru_per_ready_with_distinct_worktree():
                                           "koru-worker-connector-gen-2", "koru-worker-fleet-1"}
     # each argv targets the ticket + a distinct worker id
     assert all("--agent-lane" in a and "--allow-duplicate" in a for a in launched)
+
+
+# --- bridge: the PROPER koru<->claude integration (headless claude -p, not GUI injection) ---
+from urirun_work import bridge
+import subprocess as _sp
+
+
+def _fake_claude(reply, rc=0):
+    def run(argv, *a, **k):
+        return _sp.CompletedProcess(argv, rc, stdout=reply, stderr="")
+    return run
+
+
+def test_bridge_runs_ticket_headless_and_marks_done():
+    t = _t("IFURI-99", "Add a docstring to foo.py")
+    calls = []
+    def runner(argv, *a, **k):
+        calls.append(argv)
+        if argv[1] == "-p":                      # the claude -p call
+            return _sp.CompletedProcess(argv, 0, stdout="did the work\nDONE: added docstring", stderr="")
+        return _sp.CompletedProcess(argv, 0, stdout="", stderr="")   # planfile mark
+    res = bridge.process_ticket(t, project="/p", runner=runner)
+    assert res["ok"] and res["status"] == "done" and "DONE" in res["summary"]
+    assert any("-p" in a for a in calls)          # went through claude -p, NOT a GUI window
+
+
+def test_bridge_detects_blocked_on_human():
+    t = _t("IFURI-98", "email spam needs secret")
+    res = bridge.run_ticket(t, project="/p", runner=_fake_claude("BLOCKED: need secret://mail/main"),
+                            claude_bin="claude")
+    assert res["status"] == "waiting_input" and not res["ok"]
+
+
+def test_bridge_failure_is_not_a_false_done():
+    t = _t("IFURI-97", "do a thing")
+    res = bridge.run_ticket(t, project="/p", runner=_fake_claude("error, could not", rc=1),
+                            claude_bin="claude")
+    assert res["status"] == "failed" and not res["ok"]
