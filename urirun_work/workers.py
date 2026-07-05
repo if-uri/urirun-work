@@ -26,13 +26,14 @@ def _koru_bin() -> str | None:
 
 
 def worker_command(ticket: dict, *, project: str, lane: str, index: int) -> list[str]:
-    """The koru invocation for one ticket — distinct worker id + single-ticket focus."""
+    """A koru worker scoped to a LANE (koru's real flags: --agent-lane + --allow-duplicate).
+
+    koru has no per-ticket flag; the unit of a parallel worker is a LANE. Several lane-scoped
+    loops run at once (--allow-duplicate); the scheduler ensures the lanes it activates hold
+    non-conflicting locks, so per-lane workers don't collide."""
     binp = _koru_bin() or "koru"
-    worker = f"koru-worker-{lane}-{index}"
-    tid = ticket.get("id", "")
     return [binp, "autonomous", "up", "--project", project, "--ide", "claude",
-            "--ticket-sources", "queue", "--allow-duplicate", "--worker", worker,
-            *(["--ticket", tid] if tid else [])]
+            "--ticket-sources", "queue", "--allow-duplicate", "--agent-lane", lane]
 
 
 def spawn(ready: list[dict], *, project: str, spawn_fn: Callable[[list[str]], Any] | None = None,
