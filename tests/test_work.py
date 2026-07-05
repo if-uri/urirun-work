@@ -80,4 +80,4 @@ def test_spawn_launches_one_koru_per_ready_with_distinct_worktree():
     assert {w["worker"] for w in out} == {"koru-worker-connector-gen-1",
                                           "koru-worker-connector-gen-2", "koru-worker-fleet-1"}
     # each argv targets the ticket + a distinct worker id
-    assert all("--worker" in a and "--ticket" in a for a in launched)
+    assert all("--agent-lane" in a and "--allow-duplicate" in a for a in launched)
