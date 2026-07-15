@@ -4,3 +4,4 @@ build/
 __pycache__/
 *.pyc
 .venv/
+.code2llm_cache
