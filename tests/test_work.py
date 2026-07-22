@@ -22,6 +22,34 @@ def test_same_file_serializes():
     assert locks.conflicts(a, b)              # same module → serial
 
 
+def test_repo_lock_shadows_paths_but_sibling_paths_are_parallel():
+    assert locks.locks_conflict(
+        "repo:if-uri/urirun", "path:if-uri/urirun/adapters/python/core.py"
+    )
+    assert not locks.locks_conflict(
+        "path:if-uri/urirun/adapters/a.py", "path:if-uri/urirun/adapters/b.py"
+    )
+    assert not locks.locks_conflict(
+        "repo:if-uri/urirun", "repo:if-uri/urirun-flow"
+    )
+
+
+def test_unrelated_lock_kinds_do_not_conflict_on_the_same_name():
+    assert not locks.locks_conflict("ticket:lenovo", "node:lenovo")
+    assert locks.lock_sets_conflict(
+        ["ticket:T1", "repo:if-uri/urirun"],
+        ["ticket:T2", "path:if-uri/urirun/README.md"],
+    )
+
+
+def test_ticket_conflicts_use_hierarchical_lock_contract():
+    repo = _t("A", "repository migration", locks=["repo:if-uri/project"])
+    file = _t("B", "edit file", locks=["path:if-uri/project/src/core.py"])
+    sibling = _t("C", "other repository", locks=["repo:if-uri/project-next"])
+    assert locks.conflicts(repo, file)
+    assert not locks.conflicts(repo, sibling)
+
+
 def test_node_maintenance_locks_the_node():
     a = _t("A", "Reinstall lenovo node", labels=["node-maintenance"], node="lenovo")
     assert "node:lenovo" in locks.locks_for(a)

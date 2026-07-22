@@ -3,7 +3,7 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 [project]
 name = "urirun-work"
-version = "0.1.0"
+version = "0.2.0"
 description = "Parallel work scheduler for koru: independent lanes + declared locks + worker pool. koru stays the executor; this decides what runs in parallel."
 readme = "README.md"
 requires-python = ">=3.10"
