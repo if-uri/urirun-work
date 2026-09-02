@@ -1,10 +1,19 @@
-.PHONY: install test check
+.PHONY: install test doctor-build doctor-test doctor-health check
+
+PY ?= python
 
 install:
-	python -m pip install -e .
+	$(PY) -m pip install -e .
 
-test:
-	python -m pytest -q tests
+doctor-build:
+	$(PY) -m pip install --no-deps --no-build-isolation -e .
+
+doctor-test:
+	$(PY) -m pytest -q tests
+
+doctor-health:
+	$(PY) -c "import urirun_work"
+
+test: doctor-test
 
 check: test
-
