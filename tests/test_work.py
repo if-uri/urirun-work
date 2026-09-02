@@ -130,7 +130,7 @@ def test_bridge_runs_ticket_headless_and_marks_done():
         if argv[1] == "-p":                      # the claude -p call
             return _sp.CompletedProcess(argv, 0, stdout="did the work\nDONE: added docstring", stderr="")
         return _sp.CompletedProcess(argv, 0, stdout="", stderr="")   # planfile mark
-    res = bridge.process_ticket(t, project="/p", runner=runner)
+    res = bridge.process_ticket(t, project="/p", runner=runner, claude_bin="claude")
     assert res["ok"] and res["status"] == "done" and "DONE" in res["summary"]
     assert any("-p" in a for a in calls)          # went through claude -p, NOT a GUI window
 

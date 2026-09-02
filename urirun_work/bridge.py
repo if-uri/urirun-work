@@ -88,9 +88,10 @@ def mark_ticket(ticket_id: str, status: str, note: str, *, project: str,
         return False
 
 
-def process_ticket(ticket: dict, *, project: str, runner: Runner = _run) -> dict[str, Any]:
+def process_ticket(ticket: dict, *, project: str, runner: Runner = _run,
+                   claude_bin: str | None = None) -> dict[str, Any]:
     """Run a ticket headless AND record the outcome in the queue — the full unit of work."""
-    res = run_ticket(ticket, project=project, runner=runner)
+    res = run_ticket(ticket, project=project, runner=runner, claude_bin=claude_bin)
     if res.get("status"):
         mark_ticket(str(ticket.get("id")), res["status"],
                     res.get("summary") or res.get("error", ""), project=project, runner=runner)
