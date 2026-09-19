@@ -14,3 +14,11 @@ dependencies = []
 urirun-work = "urirun_work.cli:main"
 [tool.setuptools.packages.find]
 include = ["urirun_work*"]
+
+[tool.wellmanifest]
+standard = "0.20.35"
+revision = "cfaa0bf0ea6b0e7349fed0bb62b5ce15792d687d"
+gate = "project/governance-check.sh"
+
+[tool.pytest.ini_options]
+addopts = "-p wellmanifest_governance"
